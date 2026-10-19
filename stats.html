@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DASHBOARD | STI</title>
+<link rel="stylesheet" href="styles%20(1).css">
+<script src="app-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<div class="app">
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()">
+</div>
+<div class="page active" id="page-dashboard">
+<div class="shell">
+<div class="sidebar" id="sidebar-dashboard">
+</div>
+<div class="main">
+<div class="topbar" id="topbar-dashboard">
+</div>
+<div class="content">
+<h2 class="page-title">Welcome to Student <span style="color:var(--red)">Violation</span> Dashboard</h2>
+<div class="btnrow">
+<button class="pill-btn blue" type="button" onclick="event.preventDefault(); window.showPage('students', event)">View Student List</button>
+<button id="recordViolationBtn" class="pill-btn gold record-violation-btn" type="button" onclick="event.preventDefault(); window.showPage('violation', event)">Record Violation</button>
+</div>
+<div class="filters">
+<select id="academicYearFilter">
+<option id="currentAcademicYear">Academic Year</option>
+</select>
+<select id="statsDeptFilter" onchange="renderStats()">
+<option value="">Department: All</option>
+<option value="BSIT">BSIT</option>
+<option value="BSTM">BSTM</option>
+<option value="BSHM">BSHM</option>
+</select>
+</div>
+<div class="kpi-row" aria-busy="true">
+<div class="kpi pink">
+<div class="num is-loading" id="kpiTotal" aria-label="Loading"></div>
+<div class="lab">Total Violations</div>
+</div>
+<div class="kpi orange">
+<div class="num is-loading" id="kpiRepeat" aria-label="Loading"></div>
+<div class="lab">Repeated Offenders</div>
+</div>
+<div class="kpi red">
+<div class="num is-loading" id="kpiVoided" aria-label="Loading"></div>
+<div class="lab">Voided Scholarships</div>
+</div>
+<div class="kpi green">
+<div class="num is-loading" id="kpiActions" aria-label="Loading"></div>
+<div class="lab">Actions Taken</div>
+</div>
+</div>
+<div class="dashboard-analytics-layout">
+<div class="dashboard-analytics-main">
+<div class="grid2">
+<div class="card">
+<h3>Summary Metrics</h3>
+<div id="donutWrap" aria-busy="true">
+<div class="dashboard-skeleton summary-skeleton" aria-hidden="true">
+<span class="skeleton-circle"></span>
+<span class="skeleton-stack"><i></i><i></i><i></i><i></i></span>
+</div>
+</div>
+<div id="statsCourseChart" aria-live="polite">
+<div class="dashboard-skeleton-line" aria-hidden="true"></div>
+</div>
+</div>
+<div class="card">
+<h3>Violations Over Time</h3>
+<div id="statsLineChart" aria-busy="true">
+<div class="dashboard-skeleton monthly-skeleton" aria-hidden="true">
+<span class="skeleton-chart"></span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid2 dashboard-private-insights" style="margin-top:16px;">
+<div class="card">
+<h3>Recent Violations</h3>
+<div class="table-scroll" id="recentViolations">
+</div>
+</div>
+<div class="card">
+<h3>Top Offenders</h3>
+<div class="top-offenders" id="statsTopOffenders">
+</div>
+</div>
+</div>
+</div>
+<aside id="monthlySharePanel" class="monthly-share-panel" aria-label="Monthly percentage distribution of violators" aria-busy="true">
+<div class="monthly-share-heading">Monthly share</div>
+<div class="monthly-share-caption">Loading monthly distribution</div>
+<div class="skeleton-sidebar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+</aside>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="module">
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+	import { 
+		getFirestore, collection, addDoc, getDocs, onSnapshot, doc, setDoc, deleteDoc, updateDoc 
+	} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+	const firebaseConfig = window.__APP_API_CONFIG__.firebase;
+	const app = initializeApp(firebaseConfig);
+	const db = getFirestore(app);
+
+	window.db = db;
+	window.fs = { collection, addDoc, getDocs, onSnapshot, doc, setDoc, deleteDoc, updateDoc };
+</script>
+<script src="script%20(1).js">
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>STI Violation Records - Login</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles%20(1).css">
+    <script src="app-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/12.19.0/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/12.19.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+  </head>
+  <body>
+    <div class="app">
+      <form id="violationForm" hidden aria-hidden="true">
+        <input id="studentId">
+        <input id="studentName">
+        <input id="violationType">
+        <input id="guardianPhone">
+        <input type="email" id="guardianEmail" class="form-control" placeholder="Guardian Email (Optional)">
+      </form>
+      <div class="page active" id="page-login">
+        <div class="login-wrap">
+          <div class="login-left" role="region" aria-label="STI College Dagupan">
+            <img class="login-image" src="IMAGES/sti-prof.jfif" alt="">
+            <div class="login-brand-content">
+              <div class="login-brand-header">
+                <div class="login-brand-mark" aria-hidden="true">STI</div>
+                <div>
+                  <p class="login-campus-name">STI College Dagupan</p>
+                  <p class="login-campus-subtitle">Student Violation Records</p>
+                </div>
+              </div>
+              <div class="login-brand-copy">
+                <h1>Be more.<br>Be <span>STI.</span></h1>
+                <p>Support a safer, more respectful campus community.</p>
+                <p class="login-authorized">Authorized school personnel only</p>
+              </div>
+            </div>
+          </div>
+          <main class="login-right min-h-screen flex items-center justify-center p-6 bg-[#0b1329]">
+            <form class="login-card w-full max-w-[410px] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-2xl" id="loginForm" onsubmit="window.loginUser(event)">
+              <div class="login-card-header text-center flex flex-col items-center justify-center">
+                <div class="login-avatar grid place-items-center" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <circle cx="12" cy="8" r="3.5"></circle>
+                  <path d="M5.5 20v-1.2a6.5 6.5 0 0 1 13 0V20z"></path>
+                </svg>
+                </div>
+                <h2>Admin Login</h2>
+                <p class="login-subtext">Sign in to manage violation records</p>
+              </div>
+              <div class="login-field">
+                <label for="loginUsername">Username</label>
+                <input id="loginUsername" type="email" autocomplete="username" placeholder="Enter your email">
+              </div>
+              <div class="login-field">
+                <label for="loginPassword">Password</label>
+                <div class="password-input-wrap">
+                  <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password">
+                  <button class="password-toggle" type="button" data-toggle-password="loginPassword" aria-controls="loginPassword" aria-label="Show password" aria-pressed="false">Show</button>
+                </div>
+              </div>
+              <button class="login-forgot text-right" type="button" onclick="window.showPage('reset', event)">Forgot password?</button>
+              <button class="login-btn w-full flex items-center justify-center bg-[#FFC72C]" type="submit">Log In</button>
+              <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+              <p class="login-access-note">Need access? Contact the Student Affairs office.</p>
+            </form>
+          </main>
+        </div>
+      </div>
+        <div class="page" id="page-reset">
+          <div class="login-wrap">
+            <div class="login-left">
+              <img class="login-image" src="IMAGES/sti-prof.jfif" alt="STI College profile">
+              <div class="login-topbar">STI COLLEGE DAGUPAN</div>
+              <div class="login-brand">BE MORE.<br>BE <span>STI</span>.</div>
+            </div>
+            <div class="login-right">
+              <div class="login-card">
+                <div class="login-avatar">&#128274;</div>
+                <h2>Reset Password</h2>
+                <div class="login-field">
+                  <label>School ID Number</label>
+                  <input placeholder="Enter your School ID number">
+                </div>
+                <div class="login-field">
+                  <label>New Password</label>
+                  <div class="password-input-wrap">
+                    <input id="newPassword" type="password" placeholder="Enter new password">
+                    <button class="password-toggle" type="button" data-toggle-password="newPassword" aria-controls="newPassword" aria-label="Show password" aria-pressed="false">Show</button>
+                  </div>
+                </div>
+                <div class="login-field">
+                  <label>Confirm Password</label>
+                  <div class="password-input-wrap">
+                    <input id="confirmPassword" type="password" placeholder="Confirm new password">
+                    <button class="password-toggle" type="button" data-toggle-password="confirmPassword" aria-controls="confirmPassword" aria-label="Show password" aria-pressed="false">Show</button>
+                  </div>
+                </div>
+                <button class="login-btn" type="button" onclick="window.showPage('login', event)">Reset Password</button>
+                <div class="reset-note">
+                  Back to <a href="javascript:void(0)" onclick="window.showPage('login', event)">Log In</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <script src="script%20(1).js"></script>
+  </body>
+</html>

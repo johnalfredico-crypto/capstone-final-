@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rules and Regulations | STI</title>
+<link rel="stylesheet" href="styles%20(1).css">
+<script src="app-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<div class="app">
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()">
+</div>
+<div class="page active" id="page-discipline">
+<div class="shell">
+<div class="sidebar" id="sidebar-discipline">
+</div>
+<div class="main">
+<div class="topbar" id="topbar-discipline">
+</div>
+<div class="content">
+<h2 class="page-title">Rules and Regulations</h2>
+<div class="grid2">
+<div class="card rules-body">
+<h3>Disciplinary Measures &amp; Corrective Actions</h3>
+<h4>Corrective Actions</h4>
+<ul>
+<li><strong>Verbal/Oral Warning:</strong> A reminder/reprimand for first-time minor offenses.</li>
+<li><strong>Written Apology:</strong> A formal letter of apology required on a case-to-case basis.</li>
+<li><strong>Written Reprimand:</strong> A formal letter/notice issued by the Discipline Committee and kept on the student's record.</li>
+<li><strong>Corrective Reinforcement:</strong> The student attends classes but completes reflection/rehabilitative tasks after their last class under supervision.</li>
+<li><strong>Conference with Discipline Committee:</strong> Parents/guardians meet with school authorities regarding offenses with formal sanctions.</li>
+</ul>
+<h4>Categories of Administrative Penalties</h4>
+<ul>
+<li><strong>Suspension</strong></li>
+<li><strong>Non-readmission:</strong> Denies enrollment for the immediately succeeding term; the student may finish the current term.</li>
+<li><strong>Exclusion:</strong> Immediately drops the student from the school roll upon resolution.</li>
+<li><strong>Expulsion:</strong> Disqualifies the student from enrolling in any public or private higher education institution in the Philippines (requires CHED approval).</li>
+</ul>
+</div>
+<div class="card rules-body">
+<h3>Categories of Student Violations (Offenses)</h3>
+<h4>1. Minor Offenses</h4>
+<p>Behaviors that deviate from rules or decorum with minimal consequences.</p>
+<p><strong>Sanctions:</strong> Not specified in the provided policy text.</p>
+<p><strong>Examples of Violations:</strong> Not specified in the provided policy text.</p>
+<h4>2. Major Offenses — Category A</h4>
+<p>Behaviors with greater negative implications for individuals or the school.</p>
+<p><strong>Sanctions:</strong> Not specified in the provided policy text.</p>
+<p><strong>Examples of Violations:</strong> Not specified in the provided policy text.</p>
+<h4>3. Major Offenses — Category B</h4>
+<p>Behaviors leading to damage or destruction of property or reputation.</p>
+<p><strong>Sanctions:</strong> Not specified in the provided policy text.</p>
+<p><strong>Examples of Violations:</strong> Not specified in the provided policy text.</p>
+<h4>4. Major Offenses — Category C</h4>
+<p>Behaviors causing significant injury, endangering safety/welfare, or degrading personal/institutional integrity.</p>
+<p><strong>Sanctions:</strong> Not specified in the provided policy text.</p>
+<p><strong>Examples of Violations:</strong> Not specified in the provided policy text.</p>
+<h4>5. Major Offenses — Category D</h4>
+<p>Direct violations of Philippine laws.</p>
+<p><strong>Sanctions:</strong> Exclusion or Expulsion.</p>
+<p><strong>Examples of Violations:</strong></p>
+<ul>
+<li>Possession or sale of prohibited drugs or illegal drug paraphernalia.</li>
+<li>Testing "confirmed positive" for drugs a second time after undergoing an intervention program.</li>
+<li>Carrying or possession of firearms, deadly weapons, or explosives.</li>
+<li>Membership or participation in illegal rites/ceremonies (e.g., hazing, fraternities/sororities employing illegal rites).</li>
+<li>Crimes involving moral turpitude (rape, forgery, estafa, murder, homicide, etc.).</li>
+<li>Sexual harassment.</li>
+<li>Acts of subversion, sedition, or insurgency.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="module">
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+	import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+	const firebaseConfig = window.__APP_API_CONFIG__.firebase;
+	const app = initializeApp(firebaseConfig);
+	const db = getFirestore(app);
+	window.db = db;
+	window.fs = { collection, addDoc, getDocs, onSnapshot, doc, setDoc, deleteDoc, updateDoc };
+</script>
+<script src="script%20(1).js">
+</script>
+</body>
+</html>

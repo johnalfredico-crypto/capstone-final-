@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Record Violation | STI</title>
+<link rel="stylesheet" href="styles%20(1).css">
+<script src="app-config.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  [x-cloak] { display: none !important; }
+  /* New violation workspace layout and counselor context cards. */
+  #page-violation .violation-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);align-items:start;gap:18px;}
+  #page-violation .violation-record-section{max-width:none;margin:0;}
+  #page-violation .violation-side-panel{position:sticky;top:16px;display:grid;gap:12px;max-height:calc(100vh - 32px);overflow:auto;padding-right:2px;}
+  #page-violation .v-context-card{min-width:0;padding:16px;background:#fff;border:1px solid var(--border,#e1e6ee);border-radius:12px;box-shadow:0 1px 3px rgba(20,30,60,.06);}
+  #page-violation .v-context-card h3{margin:0 0 12px;color:var(--text,#1a2438);font-size:14px;}
+  #page-violation .v-empty{padding:14px;border:1px dashed #cfd8e6;border-radius:9px;color:var(--muted,#6b7690);font-size:12px;text-align:center;}
+  #page-violation .v-profile-head{display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+  #page-violation .v-avatar{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:50%;background:#e7effb;color:var(--sti-blue,#1560c4);font-size:14px;font-weight:800;}
+  #page-violation .v-profile-name{min-width:0;font-size:14px;font-weight:800;overflow-wrap:anywhere;}
+  #page-violation .v-profile-meta{margin-top:3px;color:var(--muted,#6b7690);font-size:11px;line-height:1.5;}
+  #page-violation .v-status{margin-left:auto;padding:5px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;}
+  #page-violation .v-status.good,#page-violation .v-new-badge{background:#e5f6eb;color:#18743a;}
+  #page-violation .v-status.warning{background:#fff3d2;color:#8a5b00;}
+  #page-violation .v-status.risk{background:#fde8e7;color:#a62c25;}
+  #page-violation .v-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+  #page-violation .v-stat{padding:9px 6px;border:1px solid #e9edf4;border-radius:8px;text-align:center;}
+  #page-violation .v-stat strong{display:block;color:var(--sti-blue-dark,#0c3f8f);font-size:17px;}
+  #page-violation .v-stat span{display:block;margin-top:2px;color:var(--muted,#6b7690);font-size:10px;}
+  #page-violation .v-history-list{display:grid;gap:8px;}
+  #page-violation .v-history-item{display:flex;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px solid #edf0f5;font-size:11px;}
+  #page-violation .v-history-item:last-child{padding-bottom:0;border-bottom:0;}
+  #page-violation .v-history-item strong{font-weight:700;}
+  #page-violation .v-history-item span{color:var(--muted,#6b7690);text-align:right;}
+  #page-violation .v-inline-link{display:inline-block;margin-top:10px;color:var(--sti-blue,#1560c4);font-size:11px;font-weight:700;text-decoration:none;}
+  #page-violation .v-inline-link:hover{text-decoration:underline;}
+  #page-violation .v-suggestion{padding:11px;border-radius:9px;background:#fff8e1;border:1px solid #f4df9a;}
+  #page-violation .v-suggestion strong{display:block;color:#735000;font-size:13px;}
+  #page-violation .v-suggestion p{margin:5px 0 0;color:#75633a;font-size:11px;line-height:1.45;}
+  #page-violation .v-id-check{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:11px;font-weight:700;}
+  #page-violation .v-id-check.available{background:#e5f6eb;color:#18743a;}
+  #page-violation .v-id-check.duplicate{background:#fde8e7;color:#a62c25;}
+  #page-violation .v-similar{margin-top:10px;padding:10px;border:1px solid #f0d27b;border-radius:9px;background:#fff8e1;color:#725000;font-size:11px;line-height:1.5;}
+  #page-violation .v-similar a{display:block;margin-top:5px;color:var(--sti-blue-dark,#0c3f8f);font-weight:800;}
+  #page-violation .v-email-preview{padding:11px;border-radius:8px;background:#f7f9fc;border:1px solid #e9edf4;font-size:11px;line-height:1.5;overflow-wrap:anywhere;}
+  #page-violation .v-email-preview p{margin:0 0 7px;}
+  #page-violation .v-email-preview p:last-child{margin-bottom:0;}
+  #page-violation #v_studentResults:empty{display:none;}
+  @media(max-width:1100px){
+    #page-violation .violation-layout{grid-template-columns:minmax(0,1fr);}
+    #page-violation .violation-side-panel{position:static;max-height:none;overflow:visible;padding:0;}
+  }
+  @media(max-width:600px){
+    #page-violation .v-context-card{padding:13px;}
+    #page-violation .v-profile-head{align-items:flex-start;flex-wrap:wrap;}
+    #page-violation .v-status{margin-left:53px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar-backdrop" id="sidebarBackdrop" @click="closeSidebar()">
+</div>
+<div class="page active" id="page-violation"
+     x-data="{
+       studentSearch: '',
+       existingGuardianEmail: '',
+       categories: [],
+       newStudent: { studentId: '', gender: '', firstName: '', lastName: '', course: 'BSIT', yearLevel: '1st Year', section: 'A', phone: '', parentName: '', parentPhone: '', guardianEmail: '', address: '' },
+       violation: { date: '', action: 'Verbal Warning', notes: '', concern: '' },
+       today: new Date().toISOString().slice(0, 10)
+     }"
+     x-init="if (sessionStorage.getItem('violationMode') === 'new') { $store.violation.mode = 'new'; sessionStorage.removeItem('violationMode'); }">
+<div class="shell">
+<div class="sidebar" id="sidebar-violation">
+</div>
+<div class="main">
+<div class="topbar" id="topbar-violation">
+</div>
+<div class="content">
+<div class="violation-layout">
+<form id="violationForm" @submit.prevent="handleViolationSave($event)">
+<div class="form-card violation-record-section">
+<h2>Record Violation</h2>
+<div class="mode-toggle">
+<button type="button" id="modeBtnExisting" :class="{ active: $store.violation.mode === 'existing' }" @click="setViolationMode('existing')">Existing Student</button>
+<button type="button" id="modeBtnNew" :class="{ active: $store.violation.mode === 'new' }" @click="setViolationMode('new')">Add New Student</button>
+</div>
+<div id="existingStudentBlock" x-cloak x-show="$store.violation.mode === 'existing'">
+<div class="form-field">
+<label for="v_studentSearch">Search Student</label>
+<div class="search" style="width:100%;"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input id="v_studentSearch" x-model="studentSearch" @input="renderViolationSearchResults()" placeholder="Type a name or ID number to search..." autocomplete="off">
+</div>
+</div>
+<div id="v_studentResults" class="card" style="display:none;margin:10px 0 16px;padding:8px;max-height:180px;overflow:auto;">
+</div>
+<input type="hidden" id="v_studentSelect" value="">
+<div class="readonly-grid" id="violationReadonly">
+</div>
+<div class="form-field" style="margin-top:14px;">
+<label for="v_existing_guardianEmail">Guardian Email (Optional)</label>
+<input id="v_existing_guardianEmail" x-model="existingGuardianEmail" type="email" placeholder="Enter guardian email for notifications" autocomplete="email">
+</div>
+</div>
+<div id="newStudentBlock" x-cloak x-show="$store.violation.mode === 'new'">
+<div class="helper">Fill in the student's info below.</div>
+<div class="form-grid">
+<div class="form-field">
+<label for="v_new_studentId">Student ID</label>
+<input id="v_new_studentId" x-model="newStudent.studentId">
+</div>
+<div class="form-field">
+<label for="v_new_gender">Gender</label>
+<select id="v_new_gender" x-model="newStudent.gender">
+<option value="">Select</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+</div>
+<div class="form-field">
+<label for="v_new_firstName">First Name</label>
+<input id="v_new_firstName" x-model="newStudent.firstName">
+</div>
+<div class="form-field">
+<label for="v_new_lastName">Last Name</label>
+<input id="v_new_lastName" x-model="newStudent.lastName">
+</div>
+<div class="form-field">
+<label for="v_new_course">Course</label>
+<select id="v_new_course" x-model="newStudent.course">
+<option>BSHM</option>
+<option>BSIT</option>
+<option>BSTM</option>
+</select>
+</div>
+<div class="form-field">
+<label for="v_new_yearLevel">Year Level</label>
+<select id="v_new_yearLevel" x-model="newStudent.yearLevel">
+<option>1st Year</option>
+<option>2nd Year</option>
+<option>3rd Year</option>
+<option>4th Year</option>
+</select>
+</div>
+<div class="form-field">
+<label for="v_new_section">Section</label>
+<select id="v_new_section" x-model="newStudent.section">
+<option>A</option>
+<option>B</option>
+<option>C</option>
+</select>
+</div>
+<div class="form-field">
+<label for="v_new_phone">Phone Number</label>
+<input id="v_new_phone" x-model="newStudent.phone">
+</div>
+<div class="form-field">
+<label for="v_new_parentName">Parent/Guardian Name</label>
+<input id="v_new_parentName" x-model="newStudent.parentName">
+</div>
+<div class="form-field">
+<label for="v_new_parentPhone">Parent/Guardian Phone</label>
+<input id="v_new_parentPhone" x-model="newStudent.parentPhone">
+</div>
+<div class="form-field">
+<label for="guardianEmail">Guardian Email (optional)</label>
+<input id="guardianEmail" x-model="newStudent.guardianEmail" type="email" class="form-control" placeholder="Guardian Email (Optional)" autocomplete="email">
+</div>
+<div class="form-field" style="grid-column:1/-1">
+<label for="v_new_address">Address</label>
+<input id="v_new_address" x-model="newStudent.address">
+</div>
+</div>
+</div>
+<div class="form-field">
+<label>Violation(s)</label>
+<input id="studentId" type="hidden">
+<input id="studentName" type="hidden">
+<input id="violationType" type="hidden">
+<input id="guardianPhone" type="hidden">
+<div class="check-list" id="v_categoryChecks">
+<div class="category-heading">MINOR OFFENSES</div>
+<label><input type="checkbox" value="Dress code and grooming" x-model="categories"> Dress code and grooming</label>
+<label><input type="checkbox" value="Classroom & campus decorum" x-model="categories"> Classroom &amp; campus decorum</label>
+<div class="category-heading">MAJOR OFFENSES</div>
+<label><input type="checkbox" value="Basic Misconduct & Campus Disturbance" x-model="categories"> Basic Misconduct &amp; Campus Disturbance</label>
+<label><input type="checkbox" value="Academic Integrity, Smoking, & Vandalism" x-model="categories"> Academic Integrity, Smoking, &amp; Vandalism</label>
+<label><input type="checkbox" value="Substance Use, Theft, Assault, & Harassment" x-model="categories"> Substance Use, Theft, Assault, &amp; Harassment</label>
+<label><input type="checkbox" value="Severe Misconduct, Illegal Acts, & Safety Threats" x-model="categories"> Severe Misconduct, Illegal Acts, &amp; Safety Threats</label>
+</div>
+</div>
+<div class="form-grid">
+<div class="form-field">
+<label for="v_date">Date</label>
+<input id="v_date" x-model="violation.date" :max="today" type="date">
+</div>
+<div class="form-field">
+<label for="v_action">Action Taken</label>
+<select id="v_action" x-model="violation.action">
+<option>Verbal Warning</option>
+<option>Written Warning</option>
+<option>Community Service</option>
+<option>Suspension</option>
+<option>Scholarship Voided</option>
+</select>
+</div>
+</div>
+<div class="form-field">
+<label for="v_notes">Notes</label>
+<textarea id="v_notes" x-model="violation.notes"></textarea>
+</div>
+<div class="form-field" x-cloak x-show="$store.violation.nextCount === 4">
+<label for="v_parentConcern">Concern for Parent/Guardian</label>
+<textarea id="v_parentConcern" x-model="violation.concern" :required="$store.violation.nextCount === 4" placeholder="Type the concern to send to the parent or guardian"></textarea>
+</div>
+<div class="form-actions">
+<button class="btn gray" type="button" @click="window.showPage('students')">Cancel</button>
+<button class="btn gray role-protected-write" type="submit" data-print="true">Save &amp; Print</button>
+<button class="btn green role-protected-write" type="submit" data-print="false">Save</button>
+</div>
+</div>
+</form>
+<!-- New sections: student context and live decision support. -->
+<aside class="violation-side-panel" aria-label="Student record and action guidance">
+<section class="v-context-card">
+<h3>Student Profile</h3>
+<div id="v-profile-content" class="v-empty">Search for a student to see their record here.</div>
+<div id="v-id-check" class="v-id-check available" role="status" aria-live="polite" hidden></div>
+<div id="v-similar-name" class="v-similar" hidden></div>
+</section>
+<section class="v-context-card">
+<h3>Violation History</h3>
+<div id="v-history-content" class="v-empty">Select a student to view recent violations.</div>
+<a class="v-inline-link" id="v-view-all" href="#" hidden>View all records</a>
+</section>
+<section class="v-context-card">
+<h3>Suggested Action</h3>
+<div id="v-suggestion-content" class="v-suggestion"><strong>Verbal Warning</strong><p>Select a student and violations for a recommendation.</p></div>
+</section>
+<section class="v-context-card">
+<h3>Guardian Email Preview</h3>
+<div id="v-email-content" class="v-email-preview">Select a student and violations to preview the notification.</div>
+</section>
+</aside>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="printArea" class="print-only"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs, onSnapshot, doc, getDoc, setDoc, deleteDoc, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = window.__APP_API_CONFIG__.firebase;
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.fs = { collection, addDoc, getDocs, onSnapshot, doc, getDoc, setDoc, deleteDoc, updateDoc };
+</script>
+<script src="script%20(1).js"></script>
+<!-- New sections: live profile, history, recommendations, and email preview. -->
+<script>
+  function getStudentData(studentId){
+    if(typeof students === 'undefined' || !studentId) return null;
+    return students.find(student =>
+      String(student.studentId || '').trim().toLowerCase() === String(studentId).trim().toLowerCase()
+    ) || null;
+  }
+
+  function getViolationHistory(studentId){
+    const student = getStudentData(studentId)
+      || (typeof students === 'undefined' ? null : students.find(item=>String(item.uid) === String(studentId)));
+    return student && Array.isArray(student.violations) ? student.violations : [];
+  }
+
+  (function(){
+    const form = document.getElementById('violationForm');
+    const profile = document.getElementById('v-profile-content');
+    const history = document.getElementById('v-history-content');
+    const viewAll = document.getElementById('v-view-all');
+    const suggestion = document.getElementById('v-suggestion-content');
+    const emailPreview = document.getElementById('v-email-content');
+    const results = document.getElementById('v_studentResults');
+    const minorCategories = ['Dress code and grooming', 'Classroom & campus decorum'];
+    const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[char]));
+    const read = id => document.getElementById(id)?.value?.trim() || '';
+    const activeMode = () => document.getElementById('modeBtnNew')?.classList.contains('active') ? 'new' : 'existing';
+    const newStudentData = () => ({
+      studentId: read('v_new_studentId'),
+      firstName: read('v_new_firstName'),
+      lastName: read('v_new_lastName'),
+      course: read('v_new_course'),
+      yearLevel: read('v_new_yearLevel'),
+      section: read('v_new_section'),
+      guardianEmail: read('guardianEmail')
+    });
+    const studentFullName = student => [student.firstName, student.lastName].filter(Boolean).join(' ') || 'Student name';
+    const studentCourseYear = student => [student.course, student.yearLevel].filter(Boolean).join(' · ') || 'Program and year not entered';
+    const checkedCategories = () => [...document.querySelectorAll('#v_categoryChecks input:checked')].map(input=>input.value);
+    const isMinor = category => minorCategories.some(minor=>category.includes(minor));
+    const countTypes = records => records.reduce((counts, record)=>{
+      const categories = String(record.category || '').split(',').map(value=>value.trim()).filter(Boolean);
+      if(categories.some(isMinor)) counts.minor++;
+      if(categories.some(category=>!isMinor(category))) counts.major++;
+      return counts;
+    }, {minor:0, major:0});
+    const studentInitials = student => studentFullName(student).split(/\s+/).filter(Boolean).map(part=>part[0]).slice(0,2).join('').toUpperCase() || 'ST';
+    const approximateNameMatch = (left, right) => {
+      const a = left.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      const b = right.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      if(!a || !b) return false;
+      if(a === b || a.includes(b) || b.includes(a)) return true;
+      const leftParts = a.split(/\s+/);
+      const rightParts = b.split(/\s+/);
+      if(leftParts.some(part=>part.length > 2 && rightParts.includes(part))) return true;
+      if(a.length > 2 && b.length > 2 && Math.abs(a.length-b.length) <= 2){
+        let previous = Array.from({length:b.length+1}, (_,index)=>index);
+        for(let row=1; row<=a.length; row++){
+          const current = [row];
+          for(let column=1; column<=b.length; column++){
+            current[column] = Math.min(current[column-1]+1, previous[column]+1, previous[column-1]+(a[row-1]===b[column-1]?0:1));
+          }
+          previous = current;
+        }
+        return previous[b.length] <= 2;
+      }
+      return false;
+    };
+    const updateIdCheck = () => {
+      const student = newStudentData();
+      const existing = student.studentId ? getStudentData(student.studentId) : null;
+      const idCard = document.getElementById('v-id-check');
+      if(idCard){
+        idCard.className = `v-id-check ${existing ? 'duplicate' : 'available'}`;
+        idCard.textContent = existing ? 'This ID is already in use' : 'ID is available';
+        idCard.hidden = !student.studentId;
+      }
+      return {student, existing, inUse:Boolean(existing)};
+    };
+    const updateSimilarName = student => {
+      const target = document.getElementById('v-similar-name');
+      if(!target) return;
+      const full = studentFullName(student).trim();
+      const match = full && full !== 'Student name' && typeof students !== 'undefined'
+        ? students.find(candidate=>String(candidate.studentId || '').toLowerCase() !== student.studentId.toLowerCase() && approximateNameMatch(full, studentFullName(candidate)))
+        : null;
+      target.hidden = !match;
+      target.innerHTML = match
+        ? `A similar student already exists: <strong>${escapeHtml(studentFullName(match))}</strong> · ${escapeHtml(match.studentId || 'No ID')} · ${escapeHtml(match.course || 'Program not set')}<a href="#" data-similar-student="${escapeHtml(match.uid)}">Record under this student instead</a>`
+        : '';
+    };
+    const renderStudent = (student, records, isNew=false) => {
+      if(!student){
+        profile.className = 'v-empty';
+        profile.textContent = 'Search for a student to see their record here.';
+        history.className = 'v-empty';
+        history.textContent = 'Select a student to view recent violations.';
+        viewAll.hidden = true;
+        return;
+      }
+      const counts = countTypes(records);
+      const total = records.length;
+      const tone = isNew || total === 0 ? 'good' : total < 3 ? 'warning' : 'risk';
+      const label = isNew ? 'New' : total === 0 ? 'Good Standing' : total < 3 ? 'Warning' : 'At Risk';
+      profile.className = '';
+      profile.innerHTML = `<div class="v-profile-head"><div class="v-avatar" aria-hidden="true">${escapeHtml(studentInitials(student))}</div><div><div class="v-profile-name">${escapeHtml(studentFullName(student))}</div><div class="v-profile-meta">ID: ${escapeHtml(student.studentId || 'Not entered')}<br>${escapeHtml(studentCourseYear(student))}${student.section ? ` · Section ${escapeHtml(student.section)}` : ''}</div></div><span class="v-status ${tone} ${isNew ? 'v-new-badge' : ''}">${label}</span></div><div class="v-stats"><div class="v-stat"><strong>${counts.minor}</strong><span>Minor</span></div><div class="v-stat"><strong>${counts.major}</strong><span>Major</span></div><div class="v-stat"><strong>${total}</strong><span>Total</span></div></div>`;
+      const recent = records.slice().sort((a,b)=>String(b.date || '').localeCompare(String(a.date || ''))).slice(0,5);
+      history.className = '';
+      history.innerHTML = recent.length
+        ? `<div class="v-history-list">${recent.map(record=>`<div class="v-history-item"><strong>${escapeHtml(record.category || 'Violation')}</strong><span>${escapeHtml(record.date || 'Date not recorded')}<br>${escapeHtml(record.action || 'No action recorded')}</span></div>`).join('')}</div>`
+        : '<div class="v-empty">No previous violations.</div>';
+      viewAll.hidden = isNew || !student.uid;
+      viewAll.href = 'students.html';
+    };
+    const updateSuggestion = (records, categories) => {
+      const currentMinor = categories.filter(isMinor).length;
+      const currentMajor = categories.filter(category=>!isMinor(category)).length;
+      const counts = countTypes(records);
+      let title = 'Verbal Warning';
+      let reason = 'Recommended for a first minor offense.';
+      if(currentMajor || counts.major){
+        title = 'Suspension / referral';
+        reason = 'A major offense is selected or appears in the student history.';
+      }else if(counts.minor + currentMinor >= 2){
+        title = 'Written Warning';
+        reason = 'Repeat minor offenses are recorded or selected.';
+      }else if(counts.minor + currentMinor === 1){
+        reason = 'This is the first recorded minor offense.';
+      }else if(records.length){
+        title = 'Written Warning';
+        reason = 'Prior violations are on record; review the history before saving.';
+      }
+      suggestion.innerHTML = `<strong>${escapeHtml(title)}</strong><p>${escapeHtml(reason)}</p>`;
+    };
+    const updateEmailPreview = (student, categories) => {
+      if(!student){
+        emailPreview.textContent = 'Select a student and violations to preview the notification.';
+        return;
+      }
+      const email = activeMode() === 'new' ? read('guardianEmail') : (read('v_existing_guardianEmail') || student.guardianEmail || '');
+      const date = read('v_date') || new Date().toISOString().slice(0,10);
+      const action = read('v_action') || 'Verbal Warning';
+      emailPreview.innerHTML = `<p><strong>To:</strong> ${escapeHtml(email || 'Guardian email not provided')}</p><p><strong>Subject:</strong> Student Violation Notification</p><p>Dear Parent/Guardian, a violation has been recorded for <strong>${escapeHtml(studentFullName(student))}</strong> (ID: ${escapeHtml(student.studentId || 'Not entered')}).</p><p><strong>Violation(s):</strong> ${escapeHtml(categories.join(', ') || 'No violations selected')}</p><p><strong>Date:</strong> ${escapeHtml(date)}<br><strong>Action taken:</strong> ${escapeHtml(action)}</p>`;
+    };
+    const refresh = () => {
+      if(!form) return;
+      const categories = checkedCategories();
+      let student = null;
+      let records = [];
+      if(activeMode() === 'new'){
+        const check = updateIdCheck();
+        student = check.student;
+        renderStudent(student, records, true);
+        updateSimilarName(student);
+      }else{
+        const selectedUid = read('v_studentSelect');
+        student = !selectedUid || !read('v_studentSearch') || typeof students === 'undefined'
+          ? null
+          : students.find(candidate=>String(candidate.uid) === String(Number(selectedUid))) || null;
+        records = student ? getViolationHistory(student.studentId || student.uid) : [];
+        renderStudent(student, records);
+        document.getElementById('v-id-check').hidden = true;
+        document.getElementById('v-similar-name').hidden = true;
+      }
+      if(student){
+        updateSuggestion(records, categories);
+        updateEmailPreview(student, categories);
+      }else{
+        suggestion.innerHTML = '<strong>Verbal Warning</strong><p>Select a student and violations for a recommendation.</p>';
+        emailPreview.textContent = 'Select a student and violations to preview the notification.';
+      }
+    };
+
+    window.addEventListener('violationstudentselected', refresh);
+    document.addEventListener('input', event=>{ if(form.contains(event.target)) refresh(); });
+    document.addEventListener('change', event=>{ if(form.contains(event.target)) refresh(); });
+    document.addEventListener('click', event=>{
+      if(event.target.closest('#modeBtnExisting, #modeBtnNew, #v_studentResults')) window.setTimeout(refresh, 0);
+      const similarLink = event.target.closest('[data-similar-student]');
+      if(similarLink){
+        event.preventDefault();
+        if(typeof window.setViolationMode === 'function') window.setViolationMode('existing');
+        if(typeof window.pickViolationStudent === 'function') window.pickViolationStudent(Number(similarLink.getAttribute('data-similar-student')));
+        window.setTimeout(refresh, 0);
+      }
+    });
+    form.addEventListener('submit', event=>{
+      if(activeMode() === 'new' && updateIdCheck().inUse){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        document.getElementById('v_new_studentId').focus();
+      }
+    }, true);
+    viewAll.addEventListener('click', event=>{
+      event.preventDefault();
+      if(typeof window.showPage === 'function') window.showPage('students');
+      else window.location.href = viewAll.href;
+    });
+    new MutationObserver(refresh).observe(document.querySelector('.mode-toggle'), {attributes:true, subtree:true, attributeFilter:['class']});
+    if(results){
+      new MutationObserver(()=>{ results.style.display = results.childElementCount ? '' : 'none'; }).observe(results, {childList:true, subtree:true});
+      results.style.display = results.childElementCount ? '' : 'none';
+    }
+    refresh();
+  })();
+</script>
+</body>
+</html>
